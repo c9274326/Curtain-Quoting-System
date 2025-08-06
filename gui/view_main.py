@@ -81,7 +81,6 @@ class CurtainPricingApp:
         self.customer_combo = ttk.Combobox(cust_frame, textvariable=self.customer_var, values=[c['name'] for c in self.customer_mgr.get_all()], state="readonly", width=25)
         self.customer_combo.grid(row=0, column=1, sticky="w")
         self.customer_combo.bind('<<ComboboxSelected>>', self.on_customer_selected)
-        self.project_combo.bind('<<ComboboxSelected>>', self.on_project_selected)
 
         project_frame = ttk.Frame(cf)
         project_frame.grid(row=0, column=1, sticky="e")
@@ -91,6 +90,7 @@ class CurtainPricingApp:
         self.project_var = tk.StringVar()
         self.project_combo = ttk.Combobox(project_frame, textvariable=self.project_var, state="readonly", width=20)
         self.project_combo.pack(side="left")
+        self.project_combo.bind('<<ComboboxSelected>>', self.on_project_selected)
 
         self.customer_info = ttk.Label(cf, text="")
         self.customer_info.grid(row=1, column=0, columnspan=2, sticky="w", pady=(5, 0))
