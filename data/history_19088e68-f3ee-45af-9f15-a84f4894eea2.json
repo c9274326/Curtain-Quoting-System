@@ -31,24 +31,43 @@
   ],
   "123": [
     {
-      "item_number": "55",
+      "item_number": "23",
       "sewing_item": {
         "fabric": "三明治布",
-        "method": "一般簾",
-        "width": 5.7,
-        "height": 8.1,
-        "pieces": 1.0,
+        "type": "一般簾",
+        "width": 8.7,
+        "height": 6.4,
+        "pieces": 3.0,
         "unit_price": 120.0,
-        "subtotal": 120.0
+        "subtotal": 360.0
       },
       "sub_items": [
         {
-          "description": "你好",
+          "description": "扶帶",
           "quantity": 1.0,
-          "unit_price": 80.0,
-          "subtotal": 80.0
+          "unit_price": 40.0,
+          "subtotal": 40.0
+        },
+        {
+          "description": "蟲蟲",
+          "quantity": 1.0,
+          "unit_price": 70.0,
+          "subtotal": 70.0
         }
       ]
+    },
+    {
+      "item_number": "24",
+      "sewing_item": {
+        "fabric": "五尺布",
+        "type": "蛇行簾",
+        "width": 8.7,
+        "height": 4.3,
+        "pieces": 5.0,
+        "unit_price": 150.0,
+        "subtotal": 750.0
+      },
+      "sub_items": []
     }
   ]
 }

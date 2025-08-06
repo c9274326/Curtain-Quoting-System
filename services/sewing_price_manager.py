@@ -1,4 +1,3 @@
-
 import json, os, uuid
 
 class SewingPriceManager:
@@ -24,11 +23,11 @@ class SewingPriceManager:
     def get_all(self):
         return self.records
 
-    def add(self, fabric, method, unit_price):
+    def add(self, fabric, type, unit_price):
         rec = {
             "id": str(uuid.uuid4()),
             "fabric": fabric,
-            "method": method,
+            "type": type,
             "unit_price": float(unit_price)
         }
         self.records.append(rec)
@@ -40,7 +39,7 @@ class SewingPriceManager:
             if r["id"] == rec_id:
                 r.update({
                     "fabric": kwargs.get("fabric", r["fabric"]),
-                    "method": kwargs.get("method", r["method"]),
+                    "type": kwargs.get("type", r["type"]),
                     "unit_price": float(kwargs.get("unit_price", r["unit_price"]))
                 })
                 self._save()
@@ -65,9 +64,9 @@ class SewingPriceManager:
         """獲取所有不重複的布料名稱"""
         return sorted(list(set(r['fabric'] for r in self.records)))
 
-    def get_price(self, fabric, method):
-        """根據布料和手法獲取單價"""
+    def get_price(self, fabric, type):
+        """根據布料和形式獲取單價"""
         for r in self.records:
-            if r['fabric'] == fabric and r['method'] == method:
+            if r['fabric'] == fabric and r['type'] == type:
                 return r['unit_price']
         return 0

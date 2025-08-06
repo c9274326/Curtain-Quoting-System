@@ -6,7 +6,7 @@ from services.sewing_price_manager import SewingPriceManager
 class SewingItem:
     """車工項目"""
     fabric: str
-    method: str
+    type: str
     width: float
     height: float
     pieces: float
@@ -40,18 +40,18 @@ class PricingEngine:
         self.config = config
         self.sewing_price_manager = sewing_price_manager
 
-    def get_sewing_price(self, fabric: str, method: str) -> float:
+    def get_sewing_price(self, fabric: str, type: str) -> float:
         """獲取車工單價"""
-        price = self.sewing_price_manager.get_price(fabric, method)
+        price = self.sewing_price_manager.get_price(fabric, type)
         if price is None:
-            raise ValueError(f"找不到布料 '{fabric}' 搭配手法 '{method}' 的車工單價")
+            raise ValueError(f"找不到布料 '{fabric}' 搭配形式 '{type}' 的車工單價")
         return price
 
-    def create_sewing_item(self, fabric: str, method: str, width: float, height: float, pieces: float) -> SewingItem:
+    def create_sewing_item(self, fabric: str, type: str, width: float, height: float, pieces: float) -> SewingItem:
         """建立車工項目並計算價格"""
-        unit_price = self.get_sewing_price(fabric, method)
+        unit_price = self.get_sewing_price(fabric, type)
         subtotal = pieces * unit_price
         return SewingItem(
-            fabric=fabric, method=method, width=width, height=height,
+            fabric=fabric, type=type, width=width, height=height,
             pieces=pieces, unit_price=unit_price, subtotal=round(subtotal, 0)
         )

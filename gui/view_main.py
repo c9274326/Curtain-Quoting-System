@@ -23,7 +23,7 @@ class CurtainPricingApp:
         self.setup_gui()
 
     def setup_gui(self):
-        self.root.title("窗簾計價系統 v2.5")
+        self.root.title("窗簾計價系統 v2.6")
         self.root.geometry("1200x800")
         self.root.minsize(1000, 700)
         style = ttk.Style()
@@ -41,7 +41,8 @@ class CurtainPricingApp:
         self.create_customer_section(frame)
         self.create_sewing_price_manager_button(frame)
         self.create_input_section(frame)
-        self.create_quote_section(frame)
+        self.create_quote_section(frame) # Create quote_tree first
+        self.quote_tree.tag_configure('summary_row', background='#f0f0f0', font=('Arial', 9, 'bold')) # Then configure it
         self.create_total_section(frame)
         self.create_action_buttons(frame)
 
@@ -141,24 +142,24 @@ class CurtainPricingApp:
         win.title("車工單價管理")
         win.geometry("500x400")
 
-        cols = ("fabric", "method", "unit_price")
+        cols = ("fabric", "type", "unit_price")
         tree = ttk.Treeview(win, columns=cols, show="headings")
         tree.heading("fabric", text="布料")
-        tree.heading("method", text="手法")
+        tree.heading("type", text="形式")
         tree.heading("unit_price", text="單價")
         tree.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         
         for r in self.sewing_price_mgr.get_all():
-            tree.insert("", "end", iid=r["id"], values=(r["fabric"], r["method"], r["unit_price"]))
+            tree.insert("", "end", iid=r["id"], values=(r["fabric"], r["type"], r["unit_price"]))
 
         form_frame = ttk.Frame(win, padding=10)
         form_frame.grid(row=1, column=0, sticky='ew')
         
-        vars = {"fabric": tk.StringVar(), "method": tk.StringVar(), "price": tk.StringVar()}
+        vars = {"fabric": tk.StringVar(), "type": tk.StringVar(), "price": tk.StringVar()}
         ttk.Label(form_frame, text="布料:").grid(row=0, column=0, sticky='w')
         ttk.Entry(form_frame, textvariable=vars['fabric']).grid(row=0, column=1, sticky='ew')
-        ttk.Label(form_frame, text="手法:").grid(row=1, column=0, sticky='w')
-        ttk.Combobox(form_frame, textvariable=vars['method'], values=["一般簾", "蛇行簾"], state='readonly').grid(row=1, column=1, sticky='ew')
+        ttk.Label(form_frame, text="形式:").grid(row=1, column=0, sticky='w')
+        ttk.Combobox(form_frame, textvariable=vars['type'], values=["一般簾", "蛇行簾"], state='readonly').grid(row=1, column=1, sticky='ew')
         ttk.Label(form_frame, text="單價:").grid(row=2, column=0, sticky='w')
         ttk.Entry(form_frame, textvariable=vars['price']).grid(row=2, column=1, sticky='ew')
 
@@ -168,7 +169,7 @@ class CurtainPricingApp:
                 rec = self.sewing_price_mgr.get_by_id(sel_id[0])
                 if rec:
                     vars['fabric'].set(rec['fabric'])
-                    vars['method'].set(rec['method'])
+                    vars['type'].set(rec['type'])
                     vars['price'].set(rec['unit_price'])
 
         tree.bind("<<TreeviewSelect>>", on_select)
@@ -179,15 +180,15 @@ class CurtainPricingApp:
         def action(func_name):
             try:
                 if func_name == 'add':
-                    rec = self.sewing_price_mgr.add(vars['fabric'].get(), vars['method'].get(), vars['price'].get())
-                    tree.insert("", "end", iid=rec["id"], values=(rec["fabric"], rec["method"], rec["unit_price"]))
+                    rec = self.sewing_price_mgr.add(vars['fabric'].get(), vars['type'].get(), vars['price'].get())
+                    tree.insert("", "end", iid=rec["id"], values=(rec["fabric"], rec["type"], rec["unit_price"]))
                 elif func_name in ['update', 'delete']:
                     sel_id = tree.selection()
                     if not sel_id: return
                     sel_id = sel_id[0]
                     if func_name == 'update':
-                        rec = self.sewing_price_mgr.update(sel_id, fabric=vars['fabric'].get(), method=vars['method'].get(), unit_price=vars['price'].get())
-                        tree.item(sel_id, values=(rec["fabric"], rec["method"], rec["unit_price"]))
+                        rec = self.sewing_price_mgr.update(sel_id, fabric=vars['fabric'].get(), type=vars['type'].get(), unit_price=vars['price'].get())
+                        tree.item(sel_id, values=(rec["fabric"], rec["type"], rec["unit_price"]))
                     else:
                         self.sewing_price_mgr.delete(sel_id)
                         tree.delete(sel_id)
@@ -218,7 +219,7 @@ class CurtainPricingApp:
 
         vcmd = (self.root.register(self.validate_float), '%P')
         self.input_vars = {
-            "item_number": tk.StringVar(), "fabric": tk.StringVar(), "method": tk.StringVar(value="一般簾"),
+            "item_number": tk.StringVar(), "fabric": tk.StringVar(), "type": tk.StringVar(value="一般簾"),
             "width": tk.StringVar(), "height": tk.StringVar(), "pieces": tk.StringVar(value="1")
         }
 
@@ -229,11 +230,11 @@ class CurtainPricingApp:
         self.fabric_combo = ttk.Combobox(self.input_frame, textvariable=self.input_vars["fabric"], values=self.sewing_price_mgr.get_fabrics(), state="readonly")
         self.fabric_combo.grid(row=1, column=1, sticky="ew")
         
-        ttk.Label(self.input_frame, text="手法:").grid(row=2, column=0, sticky=tk.W, pady=2)
-        method_frame = ttk.Frame(self.input_frame)
-        method_frame.grid(row=2, column=1, sticky='ew')
-        ttk.Radiobutton(method_frame, text="一般簾", variable=self.input_vars["method"], value="一般簾").pack(side='left', padx=5)
-        ttk.Radiobutton(method_frame, text="蛇行簾", variable=self.input_vars["method"], value="蛇行簾").pack(side='left', padx=5)
+        ttk.Label(self.input_frame, text="形式:").grid(row=2, column=0, sticky=tk.W, pady=2)
+        type_frame = ttk.Frame(self.input_frame)
+        type_frame.grid(row=2, column=1, sticky='ew')
+        ttk.Radiobutton(type_frame, text="一般簾", variable=self.input_vars["type"], value="一般簾").pack(side='left', padx=5)
+        ttk.Radiobutton(type_frame, text="蛇行簾", variable=self.input_vars["type"], value="蛇行簾").pack(side='left', padx=5)
 
         width_entry = ttk.Entry(self.input_frame, textvariable=self.input_vars["width"], validate='key', validatecommand=vcmd)
         width_entry.grid(row=3, column=1, sticky="ew")
@@ -251,15 +252,16 @@ class CurtainPricingApp:
         ttk.Label(self.input_frame, text="幅數:").grid(row=5, column=0, sticky=tk.W, pady=2)
 
         ttk.Label(self.input_frame, text="車工單價:").grid(row=6, column=0, sticky=tk.W, pady=2)
-        self.sewing_price_var = tk.StringVar(value="NT$ 0")
+        self.sewing_price_var = tk.StringVar(value="$0")
         ttk.Label(self.input_frame, textvariable=self.sewing_price_var, font=('Arial', 10, 'bold')).grid(row=6, column=1, sticky="w")
 
         ttk.Label(self.input_frame, text="試算小計:").grid(row=7, column=0, sticky=tk.W, pady=2)
-        self.trial_price_var = tk.StringVar(value="NT$ 0")
+        self.trial_price_var = tk.StringVar(value="$0")
         ttk.Label(self.input_frame, textvariable=self.trial_price_var, font=('Arial', 10, 'bold')).grid(row=7, column=1, sticky="w")
 
-        for var in self.input_vars.values():
-            var.trace_add('write', self.trial_price)
+        for var_name, var in self.input_vars.items():
+            if var_name != 'item_number':
+                var.trace_add('write', self.trial_price)
 
         self.add_btn = ttk.Button(self.input_frame, text="新增貨號項目", command=self.add_item_group)
         self.add_btn.grid(row=8, column=0, columnspan=2, pady=10)
@@ -276,19 +278,20 @@ class CurtainPricingApp:
     def trial_price(self, *args):
         try:
             fabric = self.input_vars["fabric"].get()
-            method = self.input_vars["method"].get()
+            sewing_type = self.input_vars["type"].get()
             pieces_str = self.input_vars["pieces"].get()
-            if not all([fabric, method, pieces_str]):
+            
+            if not all([fabric, sewing_type, pieces_str]):
                 self.add_btn.state(['disabled'])
                 return
 
             sewing_item = self.pricing_engine.create_sewing_item(
-                fabric=fabric, method=method, width=0, height=0, pieces=float(pieces_str)
+                fabric=fabric, type=sewing_type, width=0, height=0, pieces=float(pieces_str)
             )
-            self.sewing_price_var.set(f"NT$ {sewing_item.unit_price:,.0f}")
-            self.trial_price_var.set(f"NT$ {sewing_item.subtotal:,.0f}")
+            self.sewing_price_var.set(f"${sewing_item.unit_price:,.0f}")
+            self.trial_price_var.set(f"${sewing_item.subtotal:,.0f}")
             self.add_btn.state(['!disabled'])
-        except (ValueError, KeyError):
+        except (ValueError, KeyError) as e:
             self.sewing_price_var.set("N/A")
             self.trial_price_var.set("N/A")
             self.add_btn.state(['disabled'])
@@ -307,7 +310,7 @@ class CurtainPricingApp:
 
             sewing_item = self.pricing_engine.create_sewing_item(
                 fabric=self.input_vars['fabric'].get(),
-                method=self.input_vars['method'].get(),
+                type=self.input_vars['type'].get(),
                 width=float(self.input_vars['width'].get() or 0),
                 height=float(self.input_vars['height'].get() or 0),
                 pieces=float(self.input_vars['pieces'].get() or 1)
@@ -337,14 +340,14 @@ class CurtainPricingApp:
         self.quote_tree.heading('desc', text='項目')
         self.quote_tree.heading('spec', text='規格')
         self.quote_tree.heading('qty', text='幅數')
-        self.quote_tree.heading('price', text='單價')
-        self.quote_tree.heading('subtotal', text='小計')
+        self.quote_tree.heading('price', text='單價', anchor='e')
+        self.quote_tree.heading('subtotal', text='小計', anchor='e')
         self.quote_tree.column('item_number', width=80)
-        self.quote_tree.column('desc', width=150)
+        self.quote_tree.column('desc', width=200)
         self.quote_tree.column('spec', width=120)
-        self.quote_tree.column('qty', width=80)
-        self.quote_tree.column('price', width=80)
-        self.quote_tree.column('subtotal', width=80)
+        self.quote_tree.column('qty', width=60)
+        self.quote_tree.column('price', width=80, anchor='e')
+        self.quote_tree.column('subtotal', width=80, anchor='e')
         self.quote_tree.grid(row=0, column=0, sticky="nsew")
 
         sb = ttk.Scrollbar(qf, orient="vertical", command=self.quote_tree.yview)
@@ -361,21 +364,35 @@ class CurtainPricingApp:
         for i in self.quote_tree.get_children():
             self.quote_tree.delete(i)
 
-        for item in self.quote_items:
-            sewing_item = item.sewing_item
-            main_id = self.quote_tree.insert('', 'end', iid=item.item_number, values=(
-                item.item_number,
-                f"{sewing_item.fabric} ({sewing_item.method})",
+        for item_group in self.quote_items:
+            main_id = item_group.item_number
+            self.quote_tree.insert('', 'end', iid=main_id, values=(
+                item_group.item_number,
+                f"總計: ${item_group.total:,.0f}",
+                "", "", "", ""
+            ), tags=('summary_row',))
+            self.quote_tree.item(main_id, open=True)
+
+            sewing_item = item_group.sewing_item
+            sewing_id = f"{main_id}-sewing"
+            self.quote_tree.insert(main_id, 'end', iid=sewing_id, values=(
+                "",
+                f"車工 - {sewing_item.fabric} ({sewing_item.type})",
                 f"寬:{sewing_item.width} 高:{sewing_item.height}",
                 sewing_item.pieces,
-                f"NT$ {sewing_item.unit_price:,.0f}",
-                f"NT$ {item.total:,.0f}"
+                f"${sewing_item.unit_price:,.0f}",
+                f"${sewing_item.subtotal:,.0f}"
             ))
-            for sub_item in item.sub_items:
-                sub_id = f"{item.item_number}-{uuid.uuid4().hex[:6]}"
+
+            for sub_item in item_group.sub_items:
+                sub_id = f"{main_id}-{uuid.uuid4().hex[:6]}"
                 self.quote_tree.insert(main_id, 'end', iid=sub_id, values=(
-                    "", f"  - {sub_item.description}", "", sub_item.quantity,
-                    f"NT$ {sub_item.unit_price:,.0f}", f"NT$ {sub_item.subtotal:,.0f}"
+                    "",
+                    f"  - {sub_item.description}",
+                    "",
+                    sub_item.quantity,
+                    f"${sub_item.unit_price:,.0f}",
+                    f"${sub_item.subtotal:,.0f}"
                 ))
 
     def add_sub_item(self):
@@ -450,12 +467,12 @@ class CurtainPricingApp:
         tf.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(10, 0))
         tf.columnconfigure(1, weight=1)
         ttk.Label(tf, text="總計:", font=('Arial', 12, 'bold')).grid(row=0, column=0, sticky="w")
-        self.total_var = tk.StringVar(value="NT$ 0")
+        self.total_var = tk.StringVar(value="$0")
         ttk.Label(tf, textvariable=self.total_var, font=('Arial', 12, 'bold'), foreground='red').grid(row=0, column=1, sticky="e")
 
     def update_totals(self):
         total = sum(item.total for item in self.quote_items)
-        self.total_var.set(f"NT$ {total:,.0f}")
+        self.total_var.set(f"${total:,.0f}")
 
     def create_action_buttons(self, parent):
         bf = ttk.Frame(parent)
