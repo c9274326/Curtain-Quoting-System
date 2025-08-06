@@ -1,0 +1,32 @@
+{
+  "default_project": [
+    {
+      "item_number": "123",
+      "sewing_item": {
+        "fabric": "三明治布",
+        "method": "一般簾",
+        "width": 44.8,
+        "height": 5.4,
+        "pieces": 1.0,
+        "unit_price": 120.0,
+        "subtotal": 120.0
+      },
+      "sub_items": []
+    }
+  ],
+  "2760f33e-5f17-416d-b6ab-4a8ea60b026b": [
+    {
+      "item_number": "22",
+      "sewing_item": {
+        "fabric": "三明治布",
+        "method": "一般簾",
+        "width": 5.0,
+        "height": 6.0,
+        "pieces": 1.0,
+        "unit_price": 120.0,
+        "subtotal": 120.0
+      },
+      "sub_items": []
+    }
+  ]
+}

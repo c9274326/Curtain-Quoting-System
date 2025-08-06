@@ -1,0 +1,26 @@
+[
+  {
+    "id": "6bf56ed7-1460-41ef-a9ef-fd481dce3b7b",
+    "fabric": "五尺布",
+    "method": "蛇行簾",
+    "unit_price": 150.0
+  },
+  {
+    "id": "e0a49afc-54bd-4fd5-aee4-0f995b162903",
+    "fabric": "五尺布",
+    "method": "一般簾",
+    "unit_price": 110.0
+  },
+  {
+    "id": "7f7ddca1-1af0-4215-9efe-c515acf25172",
+    "fabric": "三明治布",
+    "method": "一般簾",
+    "unit_price": 120.0
+  },
+  {
+    "id": "46129898-226d-4d9e-b0c0-ade42aacefe1",
+    "fabric": "三明治布",
+    "method": "蛇行簾",
+    "unit_price": 150.0
+  }
+]

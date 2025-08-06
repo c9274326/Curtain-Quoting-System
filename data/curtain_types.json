@@ -1,0 +1,30 @@
+[
+  {
+    "id": "94a4218b-1d63-462d-929d-f7c4bba42f3e",
+    "curtain_type": "安安",
+    "material": "50",
+    "unit_price": 150.0,
+    "unit": "才"
+  },
+  {
+    "id": "4325a7c0-df6c-40e9-9af6-1953024124a3",
+    "curtain_type": "捲簾",
+    "material": "遮光布",
+    "unit_price": 260.0,
+    "unit": "尺"
+  },
+  {
+    "id": "2cbc722e-6e3b-40b3-8493-75adcc171bd6",
+    "curtain_type": "捲簾",
+    "material": "亮面",
+    "unit_price": 150.0,
+    "unit": "尺"
+  },
+  {
+    "id": "de28768a-9eb4-4210-923e-a18acfc65aa8",
+    "curtain_type": "A123456",
+    "material": "亮面",
+    "unit_price": 150.0,
+    "unit": "尺"
+  }
+]

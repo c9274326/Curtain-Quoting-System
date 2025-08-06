@@ -1,0 +1,7 @@
+{
+  "company_name": "滿意工作室",
+  "company_phone": "04-2708-0529",
+  "company_address": "台中市西屯區合厝街140號",
+  "price_table_path": "data/price_table.xlsx",
+  "tax_rate": 0.05
+}

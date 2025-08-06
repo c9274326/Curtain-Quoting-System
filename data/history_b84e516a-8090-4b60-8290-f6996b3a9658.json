@@ -1,0 +1,20 @@
+[
+  {
+    "item_number": "123",
+    "fabric": "三明治布",
+    "method": "一般簾",
+    "width": 11.0,
+    "height": 22.0,
+    "pieces": 5,
+    "sewing_price": 120.0,
+    "subtotal": 600.0,
+    "sub_items": [
+      {
+        "description": "扶帶",
+        "quantity": 2.0,
+        "unit_price": 50.0,
+        "subtotal": 100.0
+      }
+    ]
+  }
+]

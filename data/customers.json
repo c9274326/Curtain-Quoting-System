@@ -1,0 +1,36 @@
+[
+  {
+    "id": "19088e68-f3ee-45af-9f15-a84f4894eea2",
+    "name": "滿意工作是",
+    "phone": "04-24520754",
+    "address": "何厝街140號",
+    "template_path": "",
+    "projects": [
+      {
+        "id": "f1be8594-c8a4-42c1-89bd-783f7fd00b8e",
+        "name": "123"
+      },
+      {
+        "id": "2760f33e-5f17-416d-b6ab-4a8ea60b026b",
+        "name": "456"
+      }
+    ]
+  },
+  {
+    "id": "b84e516a-8090-4b60-8290-f6996b3a9658",
+    "name": "剪成和",
+    "phone": "0912345678",
+    "address": "光明街",
+    "template_path": "",
+    "projects": [
+      {
+        "id": "d1c96b6c-f6c7-4434-90a4-7eb3f1ba4098",
+        "name": "大哈哈"
+      },
+      {
+        "id": "8697f7c4-4133-45a6-8f0c-c96f3d8acddf",
+        "name": "小哈哈"
+      }
+    ]
+  }
+]
