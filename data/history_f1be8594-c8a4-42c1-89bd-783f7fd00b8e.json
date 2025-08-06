@@ -1,0 +1,30 @@
+[
+  {
+    "item_number": "29",
+    "sewing_item": {
+      "fabric": "五尺布",
+      "type": "一般簾",
+      "width": 50.7,
+      "height": 40.2,
+      "pieces": 1.0,
+      "unit_price": 110.0,
+      "subtotal": 110.0
+    },
+    "sub_items": [
+      {
+        "description": "88",
+        "id": "sub-f20c4c",
+        "quantity": 1.0,
+        "unit_price": 30.0,
+        "subtotal": 30.0
+      },
+      {
+        "description": "s",
+        "id": "sub-b862f2",
+        "quantity": 1.0,
+        "unit_price": 5.0,
+        "subtotal": 5.0
+      }
+    ]
+  }
+]

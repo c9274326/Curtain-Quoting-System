@@ -9,31 +9,23 @@ class CustomEncoder(json.JSONEncoder):
         return super().default(o)
 
 class HistoryManager:
-    """管理每位客戶報價歷史，存為 data/history_<cust_id>.json"""
+    """管理每個案子的報價歷史，存為 data/history_<project_id>.json"""
     def __init__(self, base_dir="data"):
         self.base_dir = base_dir
-        self.data_path = os.path.join(base_dir, "history.json") # A dummy path, not actually used for history files
         os.makedirs(self.base_dir, exist_ok=True)
 
-    def _path(self, cust_id):
-        return os.path.join(self.base_dir, f"history_{cust_id}.json")
+    def _get_path_for_project(self, project_id):
+        return os.path.join(self.base_dir, f"history_{project_id}.json")
 
-    def load_all_projects(self, cust_id):
-        path = self._path(cust_id)
+    def load_project_items(self, project_id):
+        path = self._get_path_for_project(project_id)
         if not os.path.exists(path):
-            return {}
+            return []
         with open(path, 'r', encoding='utf-8') as f:
             try:
-                data = json.load(f)
-                if isinstance(data, list):  # Legacy format
-                    return {"未分類": data}
-                return data
+                project_data = json.load(f)
             except json.JSONDecodeError:
-                return {}
-
-    def load_project_items(self, cust_id, project_id):
-        all_data = self.load_all_projects(cust_id)
-        project_data = all_data.get(project_id, [])
+                return []
         
         loaded_groups = []
         for group_data in project_data:
@@ -41,8 +33,14 @@ class HistoryManager:
             if not sewing_data: continue
             
             sewing_item = SewingItem(**sewing_data)
-            sub_items = [SubItem(**sub) for sub in group_data.get('sub_items', [])]
             
+            sub_items = []
+            for sub_data in group_data.get('sub_items', []):
+                # Handle old data that might not have an id
+                if 'id' not in sub_data:
+                    sub_data['id'] = f"sub-{uuid.uuid4().hex[:6]}"
+                sub_items.append(SubItem(**sub_data))
+
             loaded_groups.append(ItemGroup(
                 item_number=group_data['item_number'],
                 sewing_item=sewing_item,
@@ -50,9 +48,16 @@ class HistoryManager:
             ))
         return loaded_groups
 
-    def save_project_items(self, cust_id, project_id, records):
-        all_data = self.load_all_projects(cust_id)
-        all_data[project_id] = records
-        path = self._path(cust_id)
+    def save_project_items(self, project_id, records):
+        path = self._get_path_for_project(project_id)
         with open(path, 'w', encoding='utf-8') as f:
-            json.dump(all_data, f, ensure_ascii=False, indent=2, cls=CustomEncoder)
+            json.dump(records, f, ensure_ascii=False, indent=2, cls=CustomEncoder)
+
+    def delete_project_file(self, project_id):
+        """根據案子 ID 刪除對應的歷史紀錄檔案"""
+        path = self._get_path_for_project(project_id)
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+            except OSError as e:
+                print(f"Error deleting file {path}: {e}")

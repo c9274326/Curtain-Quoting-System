@@ -22,5 +22,11 @@
     "fabric": "三明治布",
     "type": "蛇行簾",
     "unit_price": 150.0
+  },
+  {
+    "id": "3dd27297-6b8a-415d-be75-6583e362e49b",
+    "fabric": "絨布",
+    "type": "蛇行簾",
+    "unit_price": 130.0
   }
 ]

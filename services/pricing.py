@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Any, Dict
+import uuid
 from services.sewing_price_manager import SewingPriceManager
 
 @dataclass
@@ -17,6 +18,7 @@ class SewingItem:
 class SubItem:
     """附加項目或備註"""
     description: str
+    id: str = field(default_factory=lambda: f"sub-{uuid.uuid4().hex[:6]}")
     quantity: float = 1
     unit_price: float = 0
     subtotal: float = 0

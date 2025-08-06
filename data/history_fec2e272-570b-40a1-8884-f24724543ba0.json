@@ -1,0 +1,44 @@
+[
+  {
+    "item_number": "123",
+    "sewing_item": {
+      "fabric": "三明治布",
+      "type": "蛇行簾",
+      "width": 10.8,
+      "height": 11.7,
+      "pieces": 5.0,
+      "unit_price": 150.0,
+      "subtotal": 750.0
+    },
+    "sub_items": [
+      {
+        "description": "蛇",
+        "id": "sub-6ff61a",
+        "quantity": 2.0,
+        "unit_price": 30.0,
+        "subtotal": 60.0
+      }
+    ]
+  },
+  {
+    "item_number": "456",
+    "sewing_item": {
+      "fabric": "五尺布",
+      "type": "一般簾",
+      "width": 11.2,
+      "height": 8.8,
+      "pieces": 4.0,
+      "unit_price": 110.0,
+      "subtotal": 440.0
+    },
+    "sub_items": [
+      {
+        "description": "蟲",
+        "id": "sub-a328f7",
+        "quantity": 3.0,
+        "unit_price": 20.0,
+        "subtotal": 60.0
+      }
+    ]
+  }
+]

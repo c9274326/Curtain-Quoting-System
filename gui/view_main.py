@@ -7,6 +7,7 @@ from services.customer_manager import CustomerManager
 from services.sewing_price_manager import SewingPriceManager
 from services.history_manager import HistoryManager
 import uuid
+import os
 
 class CurtainPricingApp:
     def __init__(self, root, config):
@@ -23,7 +24,7 @@ class CurtainPricingApp:
         self.setup_gui()
 
     def setup_gui(self):
-        self.root.title("窗簾計價系統 v2.6")
+        self.root.title("窗簾計價系統 v2.9")
         self.root.geometry("1200x800")
         self.root.minsize(1000, 700)
         style = ttk.Style()
@@ -41,8 +42,8 @@ class CurtainPricingApp:
         self.create_customer_section(frame)
         self.create_sewing_price_manager_button(frame)
         self.create_input_section(frame)
-        self.create_quote_section(frame) # Create quote_tree first
-        self.quote_tree.tag_configure('summary_row', background='#f0f0f0', font=('Arial', 9, 'bold')) # Then configure it
+        self.create_quote_section(frame)
+        self.quote_tree.tag_configure('summary_row', background='#f0f0f0', font=('Arial', 9, 'bold'))
         self.create_total_section(frame)
         self.create_action_buttons(frame)
 
@@ -82,6 +83,7 @@ class CurtainPricingApp:
         self.customer_combo = ttk.Combobox(cust_frame, textvariable=self.customer_var, values=[c['name'] for c in self.customer_mgr.get_all()], state="readonly", width=25)
         self.customer_combo.grid(row=0, column=1, sticky="w")
         self.customer_combo.bind('<<ComboboxSelected>>', self.on_customer_selected)
+        ttk.Button(cust_frame, text="管理客戶", command=self.open_customer_manager).grid(row=0, column=2, padx=(5, 0))
 
         project_frame = ttk.Frame(cf)
         project_frame.grid(row=0, column=1, sticky="e")
@@ -96,6 +98,88 @@ class CurtainPricingApp:
         self.customer_info = ttk.Label(cf, text="")
         self.customer_info.grid(row=1, column=0, columnspan=2, sticky="w", pady=(5, 0))
 
+    def open_customer_manager(self):
+        win = tk.Toplevel(self.root)
+        win.title("客戶資料管理")
+        win.geometry("600x400")
+
+        cols = ("name", "phone", "address")
+        tree = ttk.Treeview(win, columns=cols, show="headings")
+        tree.heading("name", text="客戶名稱")
+        tree.heading("phone", text="電話")
+        tree.heading("address", text="地址")
+        tree.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+
+        def refresh_tree():
+            for i in tree.get_children():
+                tree.delete(i)
+            for r in self.customer_mgr.get_all():
+                tree.insert("", "end", iid=r["id"], values=(r["name"], r["phone"], r["address"]))
+
+        refresh_tree()
+
+        form_frame = ttk.Frame(win, padding=10)
+        form_frame.grid(row=1, column=0, sticky='ew')
+        
+        vars = {"name": tk.StringVar(), "phone": tk.StringVar(), "address": tk.StringVar()}
+        ttk.Label(form_frame, text="名稱:").grid(row=0, column=0, sticky='w')
+        ttk.Entry(form_frame, textvariable=vars['name']).grid(row=0, column=1, sticky='ew')
+        ttk.Label(form_frame, text="電話:").grid(row=1, column=0, sticky='w')
+        ttk.Entry(form_frame, textvariable=vars['phone']).grid(row=1, column=1, sticky='ew')
+        ttk.Label(form_frame, text="地址:").grid(row=2, column=0, sticky='w')
+        ttk.Entry(form_frame, textvariable=vars['address']).grid(row=2, column=1, sticky='ew')
+
+        def on_select(e):
+            sel_id = tree.selection()
+            if sel_id:
+                rec = self.customer_mgr.get_by_id(sel_id[0])
+                if rec:
+                    vars['name'].set(rec['name'])
+                    vars['phone'].set(rec['phone'])
+                    vars['address'].set(rec['address'])
+
+        tree.bind("<<TreeviewSelect>>", on_select)
+
+        btn_frame = ttk.Frame(win, padding=10)
+        btn_frame.grid(row=2, column=0, sticky='ew')
+
+        def action(func_name):
+            try:
+                if func_name == 'add':
+                    self.customer_mgr.add(vars['name'].get(), vars['phone'].get(), vars['address'].get(), "")
+                elif func_name in ['update', 'delete']:
+                    sel_id = tree.selection()
+                    if not sel_id: return
+                    sel_id = sel_id[0]
+                    if func_name == 'update':
+                        self.customer_mgr.update(sel_id, name=vars['name'].get(), phone=vars['phone'].get(), address=vars['address'].get())
+                    else:
+                        if messagebox.askyesno("確認", "刪除客戶將會一併刪除該客戶的所有案子與報價紀錄，確定要刪除嗎？", parent=win):
+                            projects = self.customer_mgr.get_projects(sel_id)
+                            for proj in projects:
+                                self.history_mgr.delete_project_file(proj["id"])
+                            self.customer_mgr.delete(sel_id)
+                refresh_tree()
+                self.refresh_customer_list()
+            except Exception as e:
+                messagebox.showerror("錯誤", str(e), parent=win)
+
+        ttk.Button(btn_frame, text="新增", command=lambda: action('add')).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="修改", command=lambda: action('update')).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="刪除", command=lambda: action('delete')).pack(side="left", padx=5)
+
+        win.rowconfigure(0, weight=1); win.columnconfigure(0, weight=1)
+        form_frame.columnconfigure(1, weight=1)
+        win.grab_set()
+
+    def refresh_customer_list(self):
+        customers = [c['name'] for c in self.customer_mgr.get_all()]
+        self.customer_combo.config(values=customers)
+        self.customer_combo.set('')
+        self.customer_info.config(text="")
+        self.project_combo.config(values=[])
+        self.project_combo.set('')
+
     def on_customer_selected(self, event=None):
         name = self.customer_var.get()
         customer = next((c for c in self.customer_mgr.get_all() if c['name'] == name), None)
@@ -105,14 +189,7 @@ class CurtainPricingApp:
         self.customer_info.config(text=f"客戶: {customer['name']} | {customer['phone']} | {customer['address']}")
         self.manage_project_btn.state(['!disabled'])
         
-        projects = self.customer_mgr.get_projects(customer["id"])
-        project_names = [p["name"] for p in projects]
-        self.project_combo.config(values=project_names)
-        
-        if project_names:
-            self.project_combo.set(project_names[0])
-        else:
-            self.project_combo.set('')
+        self.refresh_project_list()
         
         self.set_input_controls_state('!disabled')
         self.set_controls_state([self.export_btn, self.open_btn, self.add_btn], '!disabled')
@@ -121,17 +198,98 @@ class CurtainPricingApp:
 
     def on_project_selected(self, event=None):
         if not self.current_customer: return
-        project_id = self.project_var.get()
-        if not project_id: 
+        project_name = self.project_var.get()
+        if not project_name: 
             self.quote_items = []
         else:
-            self.quote_items = self.history_mgr.load_project_items(self.current_customer['id'], project_id)
+            project = next((p for p in self.customer_mgr.get_projects(self.current_customer['id']) if p['name'] == project_name), None)
+            if project:
+                self.quote_items = self.history_mgr.load_project_items(project['id'])
+            else:
+                self.quote_items = []
         
         self.refresh_quote_tree()
         self.update_totals()
 
     def open_project_manager(self):
-        messagebox.showinfo("提示", "案子管理功能尚未實作。")
+        if not self.current_customer:
+            messagebox.showinfo("提示", "請先選擇一位客戶")
+            return
+
+        win = tk.Toplevel(self.root)
+        win.title(f"管理案子 - {self.current_customer['name']}")
+        win.geometry("400x300")
+
+        tree = ttk.Treeview(win, columns=("name",), show="headings")
+        tree.heading("name", text="案子名稱")
+        tree.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+
+        def refresh_project_tree():
+            for i in tree.get_children():
+                tree.delete(i)
+            for p in self.customer_mgr.get_projects(self.current_customer["id"]):
+                tree.insert("", "end", iid=p["id"], values=(p["name"],))
+
+        refresh_project_tree()
+
+        form_frame = ttk.Frame(win, padding=10)
+        form_frame.grid(row=1, column=0, sticky='ew')
+        name_var = tk.StringVar()
+        ttk.Label(form_frame, text="案名:").grid(row=0, column=0)
+        ttk.Entry(form_frame, textvariable=name_var).grid(row=0, column=1, sticky='ew')
+
+        def on_select(e):
+            sel_id = tree.selection()
+            if sel_id:
+                project = next((p for p in self.customer_mgr.get_projects(self.current_customer["id"]) if p["id"] == sel_id[0]), None)
+                if project:
+                    name_var.set(project['name'])
+
+        tree.bind("<<TreeviewSelect>>", on_select)
+
+        btn_frame = ttk.Frame(win, padding=10)
+        btn_frame.grid(row=2, column=0, sticky='ew')
+
+        def action(func_name):
+            cust_id = self.current_customer["id"]
+            try:
+                if func_name == 'add':
+                    proj_name = name_var.get()
+                    if proj_name:
+                        project = self.customer_mgr.add_project(cust_id, proj_name)
+                        self.history_mgr.save_project_items(project['id'], [])
+                elif func_name in ['update', 'delete']:
+                    sel_id = tree.selection()
+                    if not sel_id: return
+                    proj_id = sel_id[0]
+                    if func_name == 'update':
+                        self.customer_mgr.update_project(cust_id, proj_id, name_var.get())
+                    else:
+                        if messagebox.askyesno("確認刪除", "確定要永久刪除這個案子與其所有報價紀錄嗎？", parent=win):
+                            self.customer_mgr.delete_project(cust_id, proj_id)
+                            self.history_mgr.delete_project_file(proj_id)
+                refresh_project_tree()
+                self.refresh_project_list()
+            except Exception as e:
+                messagebox.showerror("錯誤", str(e), parent=win)
+
+        ttk.Button(btn_frame, text="新增", command=lambda: action('add')).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="修改", command=lambda: action('update')).pack(side="left", padx=5)
+        ttk.Button(btn_frame, text="刪除", command=lambda: action('delete')).pack(side="left", padx=5)
+
+        win.rowconfigure(0, weight=1); win.columnconfigure(0, weight=1)
+        form_frame.columnconfigure(1, weight=1)
+        win.grab_set()
+
+    def refresh_project_list(self):
+        if not self.current_customer: return
+        projects = self.customer_mgr.get_projects(self.current_customer["id"])
+        project_names = [p["name"] for p in projects]
+        self.project_combo.config(values=project_names)
+        if project_names:
+            self.project_combo.set(project_names[0])
+        else:
+            self.project_combo.set('')
 
     def create_sewing_price_manager_button(self, parent):
         btn = ttk.Button(parent, text="車工單價管理", command=self.open_sewing_price_manager)
@@ -321,7 +479,10 @@ class CurtainPricingApp:
                 sewing_item=sewing_item
             )
             self.quote_items.append(new_item)
-            self.history_mgr.save_project_items(self.current_customer['id'], self.project_var.get(), self.quote_items)
+            project_name = self.project_var.get()
+            project = next((p for p in self.customer_mgr.get_projects(self.current_customer['id']) if p['name'] == project_name), None)
+            if project:
+                self.history_mgr.save_project_items(project['id'], self.quote_items)
             self.refresh_quote_tree()
             self.update_totals()
 
@@ -385,8 +546,7 @@ class CurtainPricingApp:
             ))
 
             for sub_item in item_group.sub_items:
-                sub_id = f"{main_id}-{uuid.uuid4().hex[:6]}"
-                self.quote_tree.insert(main_id, 'end', iid=sub_id, values=(
+                self.quote_tree.insert(main_id, 'end', iid=sub_item.id, values=(
                     "",
                     f"  - {sub_item.description}",
                     "",
@@ -417,48 +577,72 @@ class CurtainPricingApp:
         
         def on_ok():
             try:
-                qty = float(vars['qty'].get())
-                price = float(vars['price'].get())
+                desc = vars['desc'].get()
+                if not desc:
+                    messagebox.showerror("錯誤", "說明不能為空", parent=win)
+                    return
+                qty = float(vars['qty'].get() or 1)
+                price = float(vars['price'].get() or 0)
+                
                 sub_item = SubItem(
-                    description=vars['desc'].get(),
+                    description=desc,
                     quantity=qty,
                     unit_price=price,
                     subtotal=qty * price
                 )
                 main_item.sub_items.append(sub_item)
-                self.history_mgr.save_project_items(self.current_customer['id'], self.project_var.get(), self.quote_items)
+                
+                project_name = self.project_var.get()
+                project = next((p for p in self.customer_mgr.get_projects(self.current_customer['id']) if p['name'] == project_name), None)
+                if project:
+                    self.history_mgr.save_project_items(project['id'], self.quote_items)
+                
                 self.refresh_quote_tree()
                 self.update_totals()
                 win.destroy()
             except ValueError:
-                messagebox.showerror("錯誤", "數量和單價必須是數字")
+                messagebox.showerror("錯誤", "數量和單價必須是數字", parent=win)
+            except Exception as e:
+                messagebox.showerror("錯誤", f"新增子項目失敗: {e}", parent=win)
 
         ttk.Button(win, text="確定", command=on_ok).pack(pady=10)
         win.grab_set()
 
     def delete_selected(self):
-        selected_ids = self.quote_tree.selection()
-        if not selected_ids: return
+        selected_iids = self.quote_tree.selection()
+        if not selected_iids: return
         if not messagebox.askyesno("確認", "確定要刪除選中的項目嗎？"): return
 
-        for item_id in selected_ids:
-            parent_id = self.quote_tree.parent(item_id)
-            if parent_id: # It's a sub-item
-                main_item = next((item for item in self.quote_items if item.item_number == parent_id), None)
-                if main_item:
-                    desc_to_delete = self.quote_tree.item(item_id)['values'][0].strip().lstrip('- ')
-                    main_item.sub_items = [si for si in main_item.sub_items if si.description != desc_to_delete]
-            else: # It's a main item
-                self.quote_items = [item for item in self.quote_items if item.item_number != item_id]
+        for iid in selected_iids:
+            parent_iid = self.quote_tree.parent(iid)
+            
+            if not parent_iid:
+                self.quote_items = [group for group in self.quote_items if group.item_number != iid]
+            else:
+                parent_group = next((group for group in self.quote_items if group.item_number == parent_iid), None)
+                if not parent_group: continue
+
+                if iid == f"{parent_iid}-sewing":
+                    messagebox.showwarning("注意", "不能直接刪除車工項目，請刪除整個貨號。", parent=self.root)
+                    continue
+
+                parent_group.sub_items = [sub for sub in parent_group.sub_items if sub.id != iid]
+
+        project_name = self.project_var.get()
+        project = next((p for p in self.customer_mgr.get_projects(self.current_customer['id']) if p['name'] == project_name), None)
+        if project:
+            self.history_mgr.save_project_items(project['id'], self.quote_items)
         
-        self.history_mgr.save(self.current_customer['id'], self.quote_items)
         self.refresh_quote_tree()
         self.update_totals()
 
     def clear_quote(self):
         if messagebox.askyesno("確認", "確定要清空所有報價明細嗎？"):
             self.quote_items.clear()
-            self.history_mgr.save_project_items(self.current_customer['id'], self.project_var.get(), self.quote_items)
+            project_name = self.project_var.get()
+            project = next((p for p in self.customer_mgr.get_projects(self.current_customer['id']) if p['name'] == project_name), None)
+            if project:
+                self.history_mgr.save_project_items(project['id'], self.quote_items)
             self.refresh_quote_tree()
             self.update_totals()
 
@@ -487,6 +671,3 @@ class CurtainPricingApp:
 
     def open_excel(self):
         messagebox.showinfo("提示", "開啟Excel功能待更新以支援子項目。")
-
-    def open_project_manager(self):
-        messagebox.showinfo("提示", "案子管理功能尚未實作。")
