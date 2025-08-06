@@ -28,5 +28,27 @@
       },
       "sub_items": []
     }
+  ],
+  "123": [
+    {
+      "item_number": "55",
+      "sewing_item": {
+        "fabric": "三明治布",
+        "method": "一般簾",
+        "width": 5.7,
+        "height": 8.1,
+        "pieces": 1.0,
+        "unit_price": 120.0,
+        "subtotal": 120.0
+      },
+      "sub_items": [
+        {
+          "description": "你好",
+          "quantity": 1.0,
+          "unit_price": 80.0,
+          "subtotal": 80.0
+        }
+      ]
+    }
   ]
 }
